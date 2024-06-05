@@ -1,0 +1,77 @@
+body {
+    background-color: #f0f4f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding-top: 60px; /* Adjust padding to account for fixed header */
+}
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+.card {
+    width: 500px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background-color: #fff;
+}
+.card-header {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.card-body textarea {
+    height: 100px;
+    resize: none;
+}
+.btn-cancel {
+    background-color: #fff;
+    color: #6c757d;
+    border: 1px solid #6c757d;
+}
+.btn-cancel:hover {
+    background-color: #6c757d;
+    color: #fff;
+}
+.btn-send {
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+}
+.btn-send:hover {
+    background-color: #0056b3;
+    color: #fff;
+}
+.note {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 10px;
+}
+.note a {
+    color: #007bff;
+}
+.note a:hover {
+    text-decoration: underline;
+}
+
+#progress {
+    display: none;
+}
+#downloadButton {
+    display: block;
+    float: right;
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+}
+#downloadButton:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    border: 1px solid #cccccc;
+}

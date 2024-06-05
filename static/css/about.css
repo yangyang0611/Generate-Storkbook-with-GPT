@@ -1,0 +1,93 @@
+body {
+    background-color: rgb(230, 190, 196) !important; /* Set background to pink */
+    background-image: none !important; /* Remove background image */
+    height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    margin: 120px auto 0px auto;
+}
+
+.title {
+    padding: 10px;
+    text-align: center;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+.text-box, .image-box {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.about {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.about h2 {
+    color: #333333;
+}
+
+.about p {
+    line-height: 1.5;
+    color: #555555;
+    margin-bottom: 1em; /* Add margin for new paragraphs */
+}
+
+.image-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-box img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 5px;
+}
+
+@media (max-width: 992px) {
+    .navbar .links,
+    .navbar .action_btn {
+        display: none;
+    }
+
+    .navbar .toggle_btn {
+        display: block;
+    }
+
+    .dropdown_menu {
+        display: block;
+    }
+
+    .content {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 576px) {
+    .dropdown_menu {
+        left: 2rem;
+        width: unset;
+    }
+}

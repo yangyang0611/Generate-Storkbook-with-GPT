@@ -1,0 +1,34 @@
+body {
+    background-color: rgb(245, 223, 226) !important; /* Set background to pink */
+    background-image: none !important; /* Remove background image */
+    height: 100vh;
+}
+
+.container {
+    margin-top: 150px;
+}
+.video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+video {
+    width: 80%;
+    max-width: 500px;
+    border: 5px solid #343a40;
+    border-radius: 10px;
+}
+.btn {
+    margin-top: 20px;
+}
+
+.btn-send {
+    background-color: #007bff;
+    color: #ffffff !important;
+    border: 1px solid #007bff;
+}
+.btn-send:hover {
+    background-color: #0056b3;
+    color: #fff;
+}

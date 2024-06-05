@@ -1,0 +1,75 @@
+.container {
+    margin: 100px auto;
+    padding: 20px;
+}
+
+.form-group label {
+    font-weight: bold;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #ff69b4;
+}
+
+.card {
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffb6c1, #ffdac1, #e0c3fc);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn-orange {
+    background-color: orange;
+    color: #FFF;
+    border: 1px solid orange; /* Add border */
+    outline: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.btn-orange:hover {
+    background-color: #FF6347;
+    color: #FFF;
+    transform: scale(1.05);
+}
+
+.btn-orange:active {
+    transform: scale(0.95);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #ffb6c1, #ffdac1, #e0c3fc); /* Gradient background */
+    color: #000000;
+}
+
+.card-body {
+    background-color: #FDE49E;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 992px) {
+    .navbar .links,
+    .navbar .action_btn {
+        display: none;
+    }
+
+    .navbar .toggle_btn {
+        display: block;
+    }
+
+    .dropdown_menu {
+        display: block;
+    }
+}
+
+@media (max-width: 576px) {
+    .dropdown_menu {
+        left: 2rem;
+        width: unset;
+    }
+}
