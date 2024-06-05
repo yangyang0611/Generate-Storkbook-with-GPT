@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/css/header.css" />
+    <link rel="stylesheet" href="./static/css/generate.css" />
+    <title>Generate Video</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #progress {
+            display: none;
+        }
+        #downloadButton {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="navbar">
+          <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
+          <ul class="links">
+            <li><a href="register">註冊</a></li>
+            <li><a href="login">登入</a></li>
+            <li><a href="about">關於</a></li>
+            <li><a href="images">圖片</a></li>
+          </ul>
+         <a href="login" class="action_btn">創作</a>
+         <div class="toggle_btn">
+          <i class="fa-solid fa-bars"></i>
+         </div>
+        </div>
+  
+        <div class="dropdown_menu">
+          <li><a href="register">註冊</a></li>
+            <li><a href="about">登入</a></li>
+            <li><a href="server">關於</a></li>
+            <li><a href="cccc">圖片</a></li>
+            <li><a href="login" class="action_btn">創作</a></li>
+        </div>
+      </header>
+
+    <div class="card">
+        <div class="card-header">
+            Welcome, {{ current_user.username }}!
+        </div>
+        <div class="card-body">
+            <form id="generateForm">
+                <div class="form-group">
+                    <textarea class="form-control" id="prompt" name="prompt" required placeholder="Enter your prompt to generate video..." required></textarea>
+                </div>
+                <div class="note">
+                    Note: AI storybook may make mistake. Check important info. 
+                </div>
+                <div class="form-group mt-3">
+                    <button type="button" class="btn btn-cancel">Cancel</button>
+                    <button type="button" id="generateButton" class="btn btn-send float-right">Generate Video</button>
+                </div>
+            </form>
+        </div>
+        <div class="logout-link">
+            <a href="/">Logout</a>
+        </div>
+    </div>
+
+    <div id="progress">
+        <p id="progressText">Generating video...</p>
+        <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+
+    <button type="button" id="downloadButton" disabled>Download Video</button>
+
+    <script>
+        let abortController;
+
+        document.getElementById('generateButton').addEventListener('click', function() {
+            console.log('Generate Video button clicked');
+            generateVideo();
+        });
+
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            console.log('Cancel button clicked');
+            cancelVideoGeneration();
+        });
+
+        function generateVideo() {
+            var prompt = document.getElementById('prompt').value;
+            console.log('Prompt entered:', prompt);
+            $('#progress').show();
+            $('#progressText').text('Generating video...');
+            $('#progressBar').val(0);
+            $('#downloadButton').hide().prop('disabled', true);
+
+            var eventSource = new EventSource('/generate_video_progress');
+            eventSource.onmessage = function(event) {
+                var data = JSON.parse(event.data);
+                console.log('Progress update:', data);
+                $('#progressText').text(data.message);
+                $('#progressBar').val(data.progress);
+                if (data.progress === 100) {
+                    eventSource.close();
+                    enableDownloadButton();
+                }
+            };
+
+            $.ajax({
+                url: '/generate_video',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ prompt: prompt }),
+                success: function(response) {
+                    console.log('Video generation started:', response);
+                },
+                error: function(xhr, status, error) {
+                    if (status === 'abort') {
+                        console.log('Video generation aborted.');
+                    } else {
+                        console.error('Error:', error);
+                    }
+                }
+            });
+        }
+        
+        function cancelVideoGeneration() {
+            if (abortController) {
+                abortController.abort();
+                $('#progress').hide();
+                $('#progressText').text('');
+                $('#progressBar').val(0);
+                $('#downloadButton').hide().prop('disabled', true);
+            }
+        }
+        
+        function enableDownloadButton() {
+            console.log('Enabling download button.');
+            $('#progressText').text('Video generation complete!');
+            $('#progressBar').val(100);
+            var downloadButton = $('#downloadButton');
+            downloadButton.show().prop('disabled', false).off('click').on('click', function() {
+                var link = document.createElement('a');
+                link.href = '/get_video/story.mp4';
+                link.download = 'story.mp4';
+                link.click();
+            });
+        }
+    </script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

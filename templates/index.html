@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" 
+    crossorigin="anonymous" 
+    referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./static/css/header.css" />
+    <link rel="stylesheet" href="./static/css/index.css" />
+    <title>AI Storybook Generation Website</title>
+  </head>
+  <body>
+    <header>
+      <div class="navbar">
+          <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
+          <ul class="links">
+              <li><a href="register">註冊</a></li>
+              <li><a href="login">登入</a></li>
+              <li><a href="about">關於</a></li>
+              <li><a href="images">圖片</a></li>
+              <li><a href="/">登出</a></li>
+          </ul>
+          <a href="login" class="action_btn">創作</a>
+          <div class="toggle_btn">
+              <i class="fa-solid fa-bars"></i>
+          </div>
+      </div>
+
+      <div class="dropdown_menu">
+          <li><a href="register">註冊</a></li>
+          <li><a href="about">登入</a></li>
+          <li><a href="server">關於</a></li>
+          <li><a href="video">影片</a></li>
+          <li><a href="images">圖片</a></li>
+          <li><a href="/">登出</a></li>
+          <li><a href="login" class="action_btn">創作</a></li>
+      </div>
+  </header>
+    <main>
+      <section id="hero">
+        <h1>Welcome</h1>
+        <p>
+          Welcome to the AI Storybook Generation Website! <br/ > 
+          Explore the magic of AI-generated stories tailored just for you. Dive into a world where every tale is unique and crafted with care. Start your adventure now!
+        </p>
+      </section>
+    </main>
+    <script>
+      const toggleBtn = document.querySelector('.toggle_btn')
+      const toggleBtnIcon = document.querySelector('.toggle_btn i')
+      const dropDownMenu = document.querySelector('.dropdown_menu')
+
+      toggleBtn.onclick = function() {
+        dropDownMenu.classList.toggle('open')
+        const isOpen = dropDownMenu.classList.contains('open')
+
+        toggleBtnIcon.classList = isOpen
+        ? 'fa-solid fa-xmark'
+        : 'fa-solid fa-bars'
+      }
+    </script>
+  </body>
+</html>

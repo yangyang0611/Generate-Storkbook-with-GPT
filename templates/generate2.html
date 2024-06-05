@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #progress {
+            display: none;
+        }
+        #downloadButton {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
+            <ul class="links">
+                <li><a href="register">註冊</a></li>
+                <li><a href="login">登入</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="images">圖片</a></li>
+            </ul>
+            <a href="#" class="action_btn">創作</a>
+            <div class="toggle_btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </div>
+    </header>
+    
+    <h2>Welcome, {{ current_user.username }}!</h2>
+    <form id="generateForm">
+        <label for="prompt">Enter your prompt:</label>
+        <textarea id="prompt" name="prompt" required></textarea><br>
+        <button type="button" id="generateButton">Generate Video</button>
+    </form>
+    <a href="index">Logout</a>
+
+    <div id="progress">
+        <p id="progressText">Generating video...</p>
+        <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+
+    <button type="button" id="downloadButton" disabled>Download Video</button>
+
+    <script>
+        document.getElementById('generateButton').addEventListener('click', function() {
+            console.log('Generate Video button clicked');
+            generateVideo();
+        });
+
+        function generateVideo() {
+            var prompt = document.getElementById('prompt').value;
+            console.log('Prompt entered:', prompt);
+            $('#progress').show();
+            $('#progressText').text('Generating video...');
+            $('#progressBar').val(0);
+            $('#downloadButton').hide().prop('disabled', true);
+
+            var eventSource = new EventSource('/generate_video_progress');
+            eventSource.onmessage = function(event) {
+                var data = JSON.parse(event.data);
+                console.log('Progress update:', data);
+                $('#progressText').text(data.message);
+                $('#progressBar').val(data.progress);
+                if (data.progress === 100) {
+                    eventSource.close();
+                    enableDownloadButton();
+                }
+            };
+
+            $.ajax({
+                url: '/generate_video',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ prompt: prompt }),
+                success: function(response) {
+                    console.log('Video generation started:', response);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+
+        function enableDownloadButton() {
+            console.log('Enabling download button.');
+            $('#progressText').text('Video generation complete!');
+            $('#progressBar').val(100);
+            var downloadButton = $('#downloadButton');
+            downloadButton.show().prop('disabled', false).off('click').on('click', function() {
+                var link = document.createElement('a');
+                link.href = '/get_video/story.mp4';
+                link.download = 'story.mp4';
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

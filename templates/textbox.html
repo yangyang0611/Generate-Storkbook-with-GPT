@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./static/css/home.css" />
+    <title>Home</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f0f4f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .card {
+            width: 500px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: #fff;
+        }
+        .card-header {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .card-body textarea {
+            height: 100px;
+            resize: none;
+        }
+        .btn-cancel {
+            background-color: #fff;
+            color: #6c757d;
+            border: 1px solid #6c757d;
+        }
+        .btn-cancel:hover {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .btn-send {
+            background-color: #007bff;
+            color: #fff;
+            border: 1px solid #007bff;
+        }
+        .btn-send:hover {
+            background-color: #0056b3;
+            color: #fff;
+        }
+        .note {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        .note a {
+            color: #007bff;
+        }
+        .note a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-header">
+            Enter your prompt to generate video
+        </div>
+        <div class="card-body">
+            <form id="generateForm">
+                <div class="form-group">
+                    <textarea class="form-control" id="prompt" name="prompt" placeholder="Type the story you want to generate..." required></textarea>
+                </div>
+                <div class="note">
+                    Note: AI storybook may make mistake. Check important info. 
+                </div>
+                <div class="form-group mt-3">
+                    <button type="button" class="btn btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-send float-right">Generate Video</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+
+        $('#generateForm').submit(function(event) {
+            event.preventDefault();
+            console.log('Form submitted');
+            // Add your form submission logic here
+        });
+    </script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
