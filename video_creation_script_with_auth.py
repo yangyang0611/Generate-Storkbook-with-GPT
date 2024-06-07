@@ -212,8 +212,8 @@ def generate_images(scene_descriptions, image_folder):
         if cancel_flag:
             raise Exception("Generation cancelled")
         if description.strip():
-            print(f"Generating image {idx + 1} for scene: {description}")
-            update_progress(f"Generating image {idx + 1} of {total_scenes}...", 20 + int((idx + 1) / total_scenes * 40))
+            print(f"Generating image {idx} for scene: {description}")
+            update_progress(f"Generating image {idx} of {total_scenes}...", 20 + int((idx) / total_scenes * 40))
             try:
                 image = generate_image(description)
                 if image is None:
@@ -236,17 +236,18 @@ def generate_images(scene_descriptions, image_folder):
     return images
 
 
-def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):
-    user_audio_folder = os.path.join(audio_folder, str(current_user.id))
-    if not os.path.exists(user_audio_folder):
-        os.makedirs(user_audio_folder)
-    
+def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):    
     update_progress("Translating script to Chinese and generating audio...", 60)
     
     # Use deep-translator for translation
-    translator = GoogleTranslator(source='en', target='zh-cn')
-    translated_script = translator.translate(script)
+    translator = Translator()
+    translated = translator.translate(script, src='en', dest='zh-cn')
+    translated_script = translated.text
     
+    user_audio_folder = os.path.join(audio_folder, str(current_user.id))
+    if not os.path.exists(user_audio_folder):
+        os.makedirs(user_audio_folder)
+        
     audio_path = os.path.join(user_audio_folder, file_name)
 
     tts = gTTS(text=translated_script, lang='zh-cn')
@@ -397,15 +398,6 @@ def generate_video():
     return jsonify({'message': 'Video generation started.'})
 
 
-
-# 將影片回傳到前端，提供下載
-@app.route('/get_video/<filename>')
-@login_required
-def get_video(filename):
-    return send_file(f'video/{filename}', as_attachment=True)
-
-from flask import send_from_directory
-
 @app.route('/images/<int:user_id>/<path:filename>')
 @login_required
 def get_user_image(user_id, filename):
@@ -421,13 +413,21 @@ def my_images():
     user_images = ImageFile.query.filter_by(user_id=current_user.id).all()
     return render_template('my_images.html', images=user_images)
 
+# 將影片回傳到前端，提供下載
+@app.route('/video/<int:user_id>/<path:filename>')
+@login_required
+def get_user_video(user_id, filename):
+    if user_id != current_user.id:
+        return "Unauthorized", 403
+    user_video_folder = os.path.join('video', str(user_id))
+    return send_from_directory(user_video_folder, filename)
 
-@app.route('/my_videos')
+@app.route('/my_video')
 @login_required
 @nocache
-def my_videos():
+def my_video():
     user_videos = VideoFile.query.filter_by(user_id=current_user.id).all()
-    return render_template('videos.html', videos=user_videos)
+    return render_template('my_video.html', videos=user_videos)
 
 @app.route('/generate')
 @login_required
