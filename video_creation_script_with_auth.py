@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import requests
 from io import BytesIO
 from moviepy.editor import *
-from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify
+from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from googletrans import Translator
@@ -16,6 +16,7 @@ import json
 from werkzeug.utils import secure_filename
 import pyttsx3
 import traceback
+from functools import wraps
 
 # Set the path to your ffmpeg binary
 # os.environ["FFMPEG_BINARY"] = "C:/Program Files/ffmpeg/bin/ffmpeg.exe"
@@ -28,8 +29,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(app)
+
 login_manager = LoginManager(app)
-# login_manager.login_view = 'login'
+login_manager.login_view = 'login'
 
 # Set OpenAI API key
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -297,6 +299,10 @@ def generate_video():
     
     def process():
         try:
+            # Ensure the user is authenticated
+            if not current_user or current_user.is_anonymous:
+                raise Exception("User not authenticated")
+            
             # Generate script and scene description
             script_file_path = "generated_script.txt"
             script_and_scene = generate_script_and_scene(prompt, script_file_path)
@@ -346,14 +352,14 @@ def get_video(filename):
 # 將影片呈現在前端網頁上
 @app.route('/video')
 @login_required
+@nocache
 def video():
     user_videos = Video.query.filter_by(user_id=current_user.id).all()
     return render_template('video.html', videos=user_videos)
 
-
-
 @app.route('/generate')
 @login_required
+@nocache
 def generate():
     return render_template('generate.html')
 
@@ -377,6 +383,16 @@ def index():
 def get_generated_images():
     images = [img for img in os.listdir('images') if img.endswith(('png', 'jpg', 'jpeg'))]
     return jsonify({'images': images})
+
+def nocache(view):
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+    return no_cache
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
