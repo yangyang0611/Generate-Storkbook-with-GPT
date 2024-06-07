@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import requests
 from io import BytesIO
 from moviepy.editor import *
-from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify, make_response, copy_current_request_context
+from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify, make_response, copy_current_request_context, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from googletrans import Translator
@@ -237,27 +237,22 @@ def generate_images(scene_descriptions, image_folder):
 
 
 def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):
-    # save audio to audio-file, user independent
     user_audio_folder = os.path.join(audio_folder, str(current_user.id))
     if not os.path.exists(user_audio_folder):
         os.makedirs(user_audio_folder)
-        
+    
     update_progress("Translating script to Chinese and generating audio...", 60)
     
-    # translate audio from eng to chinese
-    translator = Translator()
-    translated = translator.translate(script, src='en', dest='zh-cn')
-    translated_script = translated.text
-
-    if not os.path.exists(audio_folder):
-        os.makedirs(audio_folder)
-
-    audio_path = os.path.join(audio_folder, file_name)
+    # Use deep-translator for translation
+    translator = GoogleTranslator(source='en', target='zh-cn')
+    translated_script = translator.translate(script)
+    
+    audio_path = os.path.join(user_audio_folder, file_name)
 
     tts = gTTS(text=translated_script, lang='zh-cn')
     tts.save(audio_path)
     
-    # Save audio path to database
+    # Save combined audio path to database
     db_audio = AudioFile(file_path=audio_path, user_id=current_user.id)
     db.session.add(db_audio)
     db.session.commit()
@@ -265,6 +260,7 @@ def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):
     update_progress("Chinese audio generated.", 70)
     print("Translating script to Chinese and generating audio...")
     return audio_path
+
 
 # Calculate lengths of scene descriptions
 def calculate_scene_lengths(scene_descriptions):
@@ -286,15 +282,21 @@ def split_audio(audio_file, scene_descriptions, audio_folder):
     
     audio_segments = []
     start_time = 0
-    for length in lengths:
+    for segment_id, length in enumerate(lengths):
         if cancel_flag:
             raise Exception("Generation cancelled")
         duration = (length / total_length) * total_duration
         end_time = start_time + duration
         try:
             segment = audio_clip.subclip(start_time, end_time)
-            segment_path = os.path.join(user_audio_folder, f'segment_{len(audio_segments)}.mp3')
+            segment_path = os.path.join(user_audio_folder, f'segment_{segment_id}.mp3')
             segment.write_audiofile(segment_path)
+            
+            # Save audio segment path to database
+            db_audio_segment = AudioFile(file_path=segment_path, user_id=current_user.id)
+            db.session.add(db_audio_segment)
+            db.session.commit()
+            
             audio_segments.append(segment_path)
             start_time = end_time
         except Exception as e:
@@ -402,12 +404,23 @@ def generate_video():
 def get_video(filename):
     return send_file(f'video/{filename}', as_attachment=True)
 
+from flask import send_from_directory
+
+@app.route('/images/<int:user_id>/<path:filename>')
+@login_required
+def get_user_image(user_id, filename):
+    if user_id != current_user.id:
+        return "Unauthorized", 403
+    user_image_folder = os.path.join('images', str(user_id))
+    return send_from_directory(user_image_folder, filename)
+
 @app.route('/my_images')
 @login_required
 @nocache
 def my_images():
     user_images = ImageFile.query.filter_by(user_id=current_user.id).all()
-    return render_template('images.html', images=user_images)
+    return render_template('my_images.html', images=user_images)
+
 
 @app.route('/my_videos')
 @login_required
@@ -415,7 +428,6 @@ def my_images():
 def my_videos():
     user_videos = VideoFile.query.filter_by(user_id=current_user.id).all()
     return render_template('videos.html', videos=user_videos)
-
 
 @app.route('/generate')
 @login_required
@@ -439,10 +451,6 @@ def about():
 def index():
     return render_template('index.html')
 
-@app.route('/get_generated_images')
-def get_generated_images():
-    images = [img for img in os.listdir('images') if img.endswith(('png', 'jpg', 'jpeg'))]
-    return jsonify({'images': images})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
