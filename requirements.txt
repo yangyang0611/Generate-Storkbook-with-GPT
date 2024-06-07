@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+python-dotenv
+requests
+Pillow
+gtts
+googletrans
+moviepy
+pyttsx3
+openai
