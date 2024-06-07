@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import requests
 from io import BytesIO
 from moviepy.editor import *
-from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify, make_response
+from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify, make_response, copy_current_request_context
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from googletrans import Translator
@@ -28,8 +28,9 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-db = SQLAlchemy(app)
+app.config['SESSION_TYPE'] = 'filesystem'
 
+db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -57,6 +58,16 @@ class Video(db.Model):
 
 with app.app_context():
     db.create_all()
+
+def nocache(view):
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+    return no_cache
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -287,6 +298,7 @@ def create_video(images, audio_segments, video_folder, output_file="story.mp4"):
 
 @app.route('/generate_video', methods=['POST'])
 @login_required
+@nocache
 def generate_video():
     data = request.json
     prompt = data['prompt']
@@ -297,6 +309,7 @@ def generate_video():
     
     print(f"Current user: {current_user}")
     
+    @copy_current_request_context
     def process():
         try:
             # Ensure the user is authenticated
@@ -383,16 +396,6 @@ def index():
 def get_generated_images():
     images = [img for img in os.listdir('images') if img.endswith(('png', 'jpg', 'jpeg'))]
     return jsonify({'images': images})
-
-def nocache(view):
-    @wraps(view)
-    def no_cache(*args, **kwargs):
-        response = make_response(view(*args, **kwargs))
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '-1'
-        return response
-    return no_cache
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
