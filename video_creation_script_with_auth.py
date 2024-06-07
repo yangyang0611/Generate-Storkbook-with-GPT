@@ -15,6 +15,7 @@ import threading
 import json
 from werkzeug.utils import secure_filename
 import pyttsx3
+import traceback
 
 # Set the path to your ffmpeg binary
 # os.environ["FFMPEG_BINARY"] = "C:/Program Files/ffmpeg/bin/ffmpeg.exe"
@@ -144,7 +145,14 @@ def generate_image(prompt, retries=5):
                 n=1,
                 size="1024x1024"
             )
-            image_url = response['data'][0]['url']
+            print(f"OpenAI response: {response}")  # Debug print
+            if 'data' not in response or not response['data']:
+                raise Exception("No data in response")
+
+            image_url = response['data'][0].get('url', None)
+            if not image_url:
+                raise Exception("No URL in data")
+
             image_response = requests.get(image_url)
             image = Image.open(BytesIO(image_response.content))
             time.sleep(5)
@@ -152,6 +160,14 @@ def generate_image(prompt, retries=5):
             return image
         except openai.error.APIError as e:
             print(f"Error generating image: {e}")
+            if i < retries - 1:
+                print("Retrying...")
+                time.sleep(2)
+            else:
+                raise e
+        except Exception as e:
+            print(f"General error: {e}")
+            traceback.print_exc()
             if i < retries - 1:
                 print("Retrying...")
                 time.sleep(2)
@@ -169,10 +185,17 @@ def generate_images(scene_descriptions, image_folder):
         if description.strip():
             print(f"Generating image {idx + 1} for scene: {description}")
             update_progress(f"Generating image {idx + 1} of {total_scenes}...", 20 + int((idx + 1) / total_scenes * 40))
-            image = generate_image(description)
-            image_path = os.path.join(image_folder, f'image_{idx + 1}.jpg')
-            image.save(image_path, format='JPEG')
-            images.append(image_path)
+            try:
+                image = generate_image(description)
+                if image is None:
+                    raise Exception("Generated image is None")
+                image_path = os.path.join(image_folder, f'image_{idx + 1}.jpg')
+                print(f"Saving image to: {image_path}")
+                image.save(image_path, format='JPEG')
+                images.append(image_path)
+            except Exception as e:
+                print(f"Error generating or saving image: {e}")
+                raise e
     update_progress("All images generated.", 60)
     print(f"All images generated. Total: {len(images)}")
     return images
@@ -204,7 +227,13 @@ def calculate_scene_lengths(scene_descriptions):
 def split_audio(audio_file, scene_descriptions, audio_folder):
     print("Splitting audio proportionate to scene lengths...")
     update_progress("Splitting audio...", 80)
-    audio_clip = AudioFileClip(audio_file)
+    try:
+        audio_clip = AudioFileClip(audio_file)
+    except Exception as e:
+        print(f"Error loading audio file: {e}")
+        traceback.print_exc()
+        raise e
+
     total_duration = audio_clip.duration
     
     lengths, total_length = calculate_scene_lengths(scene_descriptions)
@@ -216,11 +245,16 @@ def split_audio(audio_file, scene_descriptions, audio_folder):
             raise Exception("Generation cancelled")
         duration = (length / total_length) * total_duration
         end_time = start_time + duration
-        segment = audio_clip.subclip(start_time, end_time)
-        segment_path = os.path.join(audio_folder, f'segment_{len(audio_segments)}.mp3')
-        segment.write_audiofile(segment_path)
-        audio_segments.append(segment_path)
-        start_time = end_time
+        try:
+            segment = audio_clip.subclip(start_time, end_time)
+            segment_path = os.path.join(audio_folder, f'segment_{len(audio_segments)}.mp3')
+            segment.write_audiofile(segment_path)
+            audio_segments.append(segment_path)
+            start_time = end_time
+        except Exception as e:
+            print(f"Error splitting audio: {e}")
+            traceback.print_exc()
+            raise e
     update_progress("Audio splitting completed.", 90)
     print("Audio splitting completed.")
     return audio_segments
@@ -294,6 +328,7 @@ def generate_video():
         except Exception as e:
             update_progress(f"Error: {str(e)}", 100)
             print(str(e))
+            traceback.print_exc()
     
     thread = threading.Thread(target=process)
     thread.start()
