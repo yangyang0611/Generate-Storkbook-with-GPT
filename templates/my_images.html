@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./static/css/header.css" />
+    <link rel="stylesheet" href="./static/css/images.css" />
+    <title>Generated Images</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
+            <ul class="links">
+                <li><a href="register">註冊</a></li>
+                <li><a href="login">登入</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="my_images">圖片</a></li>
+                <li><a href="my_videos">影片</a></li>
+                <li><a href="/">登出</a></li>
+            </ul>
+            <a href="login" class="action_btn">創作</a>
+            <div class="toggle_btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </div>
+
+        <div class="dropdown_menu">
+            <li><a href="register">註冊</a></li>
+            <li><a href="about">登入</a></li>
+            <li><a href="server">關於</a></li>
+            <li><a href="video">影片</a></li>
+            <li><a href="my_images">圖片</a></li>
+            <li><a href="my_videos">影片</a></li>
+            <li><a href="/">登出</a></li>
+            <li><a href="generate" class="action_btn">創作</a></li>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="text-center">Your Images</h1>
+        <ul>
+            {% for image in images %}
+                <li><img src="{{ url_for('get_user_image', user_id=current_user.id, filename=image.file_path.split('/')[-1]) }}" alt="Image"></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+</body>
+</html>
