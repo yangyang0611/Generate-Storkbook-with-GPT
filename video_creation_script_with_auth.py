@@ -30,7 +30,6 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SESSION_TYPE'] = 'filesystem'
 
-db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -45,17 +44,32 @@ def update_progress(message, progress_value):
     progress['message'] = message
     progress['progress'] = progress_value
 
+db = SQLAlchemy(app)
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    
+class ImageFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_path = db.Column(db.String(200), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('images', lazy=True))
 
-class Video(db.Model):
+class AudioFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    file_path = db.Column(db.String(200), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('audios', lazy=True))
+
+class VideoFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(200), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('videos', lazy=True))
 
+# create database tables
 with app.app_context():
     db.create_all()
 
@@ -188,8 +202,10 @@ def generate_image(prompt, retries=5):
                 raise e
 
 def generate_images(scene_descriptions, image_folder):
-    if not os.path.exists(image_folder):
-        os.makedirs(image_folder)
+    user_image_folder = os.path.join(image_folder, str(current_user.id))
+    if not os.path.exists(user_image_folder):
+        os.makedirs(user_image_folder)
+        
     images = []
     total_scenes = len(scene_descriptions)
     for idx, description in enumerate(scene_descriptions):
@@ -202,9 +218,15 @@ def generate_images(scene_descriptions, image_folder):
                 image = generate_image(description)
                 if image is None:
                     raise Exception("Generated image is None")
-                image_path = os.path.join(image_folder, f'image_{idx + 1}.jpg')
+                image_path = os.path.join(user_image_folder, f'image_{idx + 1}.jpg')
                 print(f"Saving image to: {image_path}")
                 image.save(image_path, format='JPEG')
+                
+                 # Save image path to database
+                db_image = ImageFile(file_path=image_path, user_id=current_user.id)
+                db.session.add(db_image)
+                db.session.commit()
+                
                 images.append(image_path)
             except Exception as e:
                 print(f"Error generating or saving image: {e}")
@@ -215,7 +237,14 @@ def generate_images(scene_descriptions, image_folder):
 
 
 def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):
+    # save audio to audio-file, user independent
+    user_audio_folder = os.path.join(audio_folder, str(current_user.id))
+    if not os.path.exists(user_audio_folder):
+        os.makedirs(user_audio_folder)
+        
     update_progress("Translating script to Chinese and generating audio...", 60)
+    
+    # translate audio from eng to chinese
     translator = Translator()
     translated = translator.translate(script, src='en', dest='zh-cn')
     translated_script = translated.text
@@ -227,6 +256,12 @@ def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):
 
     tts = gTTS(text=translated_script, lang='zh-cn')
     tts.save(audio_path)
+    
+    # Save audio path to database
+    db_audio = AudioFile(file_path=audio_path, user_id=current_user.id)
+    db.session.add(db_audio)
+    db.session.commit()
+    
     update_progress("Chinese audio generated.", 70)
     print("Translating script to Chinese and generating audio...")
     return audio_path
@@ -238,15 +273,13 @@ def calculate_scene_lengths(scene_descriptions):
     return lengths, total_length
 
 def split_audio(audio_file, scene_descriptions, audio_folder):
+    user_audio_folder = os.path.join(audio_folder, str(current_user.id))
+    if not os.path.exists(user_audio_folder):
+        os.makedirs(user_audio_folder)
+
     print("Splitting audio proportionate to scene lengths...")
     update_progress("Splitting audio...", 80)
-    try:
-        audio_clip = AudioFileClip(audio_file)
-    except Exception as e:
-        print(f"Error loading audio file: {e}")
-        traceback.print_exc()
-        raise e
-
+    audio_clip = AudioFileClip(audio_file)
     total_duration = audio_clip.duration
     
     lengths, total_length = calculate_scene_lengths(scene_descriptions)
@@ -260,7 +293,7 @@ def split_audio(audio_file, scene_descriptions, audio_folder):
         end_time = start_time + duration
         try:
             segment = audio_clip.subclip(start_time, end_time)
-            segment_path = os.path.join(audio_folder, f'segment_{len(audio_segments)}.mp3')
+            segment_path = os.path.join(user_audio_folder, f'segment_{len(audio_segments)}.mp3')
             segment.write_audiofile(segment_path)
             audio_segments.append(segment_path)
             start_time = end_time
@@ -273,12 +306,13 @@ def split_audio(audio_file, scene_descriptions, audio_folder):
     return audio_segments
 
 def create_video(images, audio_segments, video_folder, output_file="story.mp4"):
+    user_video_folder = os.path.join(video_folder, str(current_user.id))
+    if not os.path.exists(user_video_folder):
+        os.makedirs(user_video_folder)
+
     update_progress("Creating video...", 90)
     print("Creating video...")
     
-    if not os.path.exists(video_folder):
-        os.makedirs(video_folder)
-        
     clips = []
     crossfade_duration = 0.5  # Crossfade duration in seconds
     for image_path, audio_segment in zip(images, audio_segments):
@@ -290,8 +324,14 @@ def create_video(images, audio_segments, video_folder, output_file="story.mp4"):
         clips.append(img_clip.crossfadein(crossfade_duration))
         
     video = concatenate_videoclips(clips, method="compose", padding=-crossfade_duration)
-    video_path = os.path.join(video_folder, output_file)
+    video_path = os.path.join(user_video_folder, output_file)
     video.write_videofile(video_path, fps=24)
+    
+    # Save video path to database
+    db_video = VideoFile(file_path=video_path, user_id=current_user.id)
+    db.session.add(db_video)
+    db.session.commit()
+    
     update_progress("Video created.", 100)
     print("Video created.")
     return video_path
@@ -338,7 +378,7 @@ def generate_video():
             output_video_path = create_video(images, audio_segments, video_folder)
             
             # Save video details to database
-            video = Video(file_path=output_video_path, user_id=current_user.id)
+            video = VideoFile(file_path=output_video_path, user_id=current_user.id)
             db.session.add(video)
             db.session.commit()
             
@@ -362,13 +402,20 @@ def generate_video():
 def get_video(filename):
     return send_file(f'video/{filename}', as_attachment=True)
 
-# 將影片呈現在前端網頁上
-@app.route('/video')
+@app.route('/my_images')
 @login_required
 @nocache
-def video():
-    user_videos = Video.query.filter_by(user_id=current_user.id).all()
-    return render_template('video.html', videos=user_videos)
+def my_images():
+    user_images = ImageFile.query.filter_by(user_id=current_user.id).all()
+    return render_template('images.html', images=user_images)
+
+@app.route('/my_videos')
+@login_required
+@nocache
+def my_videos():
+    user_videos = VideoFile.query.filter_by(user_id=current_user.id).all()
+    return render_template('videos.html', videos=user_videos)
+
 
 @app.route('/generate')
 @login_required
