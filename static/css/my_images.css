@@ -1,0 +1,9 @@
+body {
+    background-color: rgb(245, 223, 226) !important; /* Set background to pink */
+    background-image: none !important; /* Remove background image */
+    height: 100vh;
+}
+
+.container {
+    margin-top: 150px;
+}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./static/css/header.css" />
-    <link rel="stylesheet" href="./static/css/images.css" />
+    <link rel="stylesheet" href="./static/css/my_images.css" />
     <title>Generated Images</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -52,11 +52,13 @@
 
     <div class="container">
         <h1 class="text-center">Your Images</h1>
-        <ul>
+        <div class="row">
             {% for image in images %}
-                <li><img src="{{ url_for('get_user_image', user_id=current_user.id, filename=image.file_path.split('/')[-1]) }}" alt="Image"></li>
+                <div class="col-md-4">
+                    <img src="{{ url_for('get_user_image', user_id=current_user.id, filename=image.file_path.split('/')[-1]) }}" class="img-fluid mb-3" alt="Image">
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
