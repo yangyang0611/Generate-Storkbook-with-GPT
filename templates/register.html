@@ -15,26 +15,39 @@
         <div class="navbar">
             <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
             <ul class="links">
-                <li><a href="register">註冊</a></li>
-                <li><a href="login">登入</a></li>
-                <li><a href="about">關於</a></li>
-                <li><a href="images">圖片</a></li>
-                <li><a href="/">登出</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="my_images">圖片</a></li>
+                    <li><a href="my_video">影片</a></li>
+                    <li><a href="about">關於</a></li>
+                    <li><a href="{{ url_for('logout')}}" class="action_btn">登出</a></li>
+                    <li><a href="generate" class="action_btn">創作</a></li>
+                    <span class="user_name">{{ current_user.username }}</span>
+                {% else %}
+                    <li><a href="register">註冊</a></li>
+                    <li><a href="login">登入</a></li>
+                    <li><a href="about">關於</a></li>
+                    <li><a href="login" class="action_btn">創作</a></li>
+                {% endif %}
             </ul>
-            <a href="login" class="action_btn">創作</a>
             <div class="toggle_btn">
                 <i class="fa-solid fa-bars"></i>
             </div>
         </div>
-
+    
         <div class="dropdown_menu">
-            <li><a href="register">註冊</a></li>
-            <li><a href="about">登入</a></li>
-            <li><a href="server">關於</a></li>
-            <li><a href="video">影片</a></li>
-            <li><a href="images">圖片</a></li>
-            <li><a href="/">登出</a></li>
-            <li><a href="login" class="action_btn">創作</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="my_images">圖片</a></li>
+                <li><a href="my_video">影片</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="{{ url_for('logout')}}" class="action_btn">登出</a></li>
+                <li><a href="generate" class="action_btn">創作</a></li>
+                <span class="user_name">{{ current_user.username }}</span>
+            {% else %}
+                <li><a href="register">註冊</a></li>
+                <li><a href="login">登入</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="login" class="action_btn">創作</a></li>
+            {% endif %}
         </div>
     </header>
 
@@ -72,20 +85,6 @@
             </div>
         </div>
     </div>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        const toggleBtn = document.querySelector('.toggle_btn')
-        const toggleBtnIcon = document.querySelector('.toggle_btn i')
-        const dropDownMenu = document.querySelector('.dropdown_menu')
-
-        toggleBtn.onclick = function() {
-            dropDownMenu.classList.toggle('open')
-            const isOpen = dropDownMenu.classList.contains('open')
-
-            toggleBtnIcon.classList = isOpen
-            ? 'fa-solid fa-xmark'
-            : 'fa-solid fa-bars'
-        }
-    </script>
+    <script src="./static/js/navbar.js"></script>
 </body>
 </html>

@@ -14,28 +14,39 @@
         <div class="navbar">
             <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
             <ul class="links">
-                <li><a href="register">註冊</a></li>
-                <li><a href="login">登入</a></li>
-                <li><a href="about">關於</a></li>
-                <li><a href="my_images">圖片</a></li>
-                <li><a href="my_videos">影片</a></li>
-                <li><a href="/">登出</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="my_images">圖片</a></li>
+                    <li><a href="my_video">影片</a></li>
+                    <li><a href="about">關於</a></li>
+                    <li><a href="{{ url_for('logout')}}" class="action_btn">登出</a></li>
+                    <li><a href="generate" class="action_btn">創作</a></li>
+                    <span class="user_name">{{ current_user.username }}</span>
+                {% else %}
+                    <li><a href="register">註冊</a></li>
+                    <li><a href="login">登入</a></li>
+                    <li><a href="about">關於</a></li>
+                    <li><a href="login" class="action_btn">創作</a></li>
+                {% endif %}
             </ul>
-            <a href="login" class="action_btn">創作</a>
             <div class="toggle_btn">
                 <i class="fa-solid fa-bars"></i>
             </div>
         </div>
-
+    
         <div class="dropdown_menu">
-            <li><a href="register">註冊</a></li>
-            <li><a href="about">登入</a></li>
-            <li><a href="server">關於</a></li>
-            <li><a href="video">影片</a></li>
-            <li><a href="my_images">圖片</a></li>
-            <li><a href="my_videos">影片</a></li>
-            <li><a href="/">登出</a></li>
-            <li><a href="generate" class="action_btn">創作</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="my_images">圖片</a></li>
+                <li><a href="my_video">影片</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="{{ url_for('logout')}}" class="action_btn">登出</a></li>
+                <li><a href="generate" class="action_btn">創作</a></li>
+                <span class="user_name">{{ current_user.username }}</span>
+            {% else %}
+                <li><a href="register">註冊</a></li>
+                <li><a href="login">登入</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="login" class="action_btn">創作</a></li>
+            {% endif %}
         </div>
     </header>
 
@@ -50,7 +61,7 @@
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script src="./static/js/navbar.js"></script>    
 </body>
 </html>
