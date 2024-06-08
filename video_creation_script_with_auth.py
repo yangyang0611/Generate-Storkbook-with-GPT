@@ -9,6 +9,7 @@ from io import BytesIO
 from moviepy.editor import *
 from flask import Flask, request, send_file, redirect, url_for, render_template, flash, Response, jsonify, make_response, copy_current_request_context, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from googletrans import Translator
 import threading
@@ -45,7 +46,7 @@ def update_progress(message, progress_value):
     progress['progress'] = progress_value
 
 db = SQLAlchemy(app)
-
+migrate = Migrate(app, db)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -55,6 +56,7 @@ class ImageFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(200), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    script = db.Column(db.Text, nullable=True)
     user = db.relationship('User', backref=db.backref('images', lazy=True))
 
 class AudioFile(db.Model):
@@ -116,7 +118,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for('login'))
+        return redirect(url_for('generate'))
     
     return render_template('register.html')
 
@@ -124,7 +126,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 @app.route('/generate_video_progress')
 def generate_video_progress():
@@ -146,14 +148,16 @@ def cancel_generation():
 def generate_script_and_scene(prompt, script_file_path="generated_script.txt"):
     print("Generating script and scene descriptions...")
     update_progress("Generating script and scene descriptions...", 10)
+    
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "system", "content": "You are a amazing storyteller."},
             {"role": "user", "content": prompt}
         ]
     )
     script_and_scene = response['choices'][0]['message']['content'].strip()
+    
     update_progress("Script and scene descriptions generated.", 20)
     print("Script and scene descriptions generated.")
     
@@ -211,9 +215,11 @@ def generate_images(scene_descriptions, image_folder):
     for idx, description in enumerate(scene_descriptions):
         if cancel_flag:
             raise Exception("Generation cancelled")
+        
         if description.strip():
             print(f"Generating image {idx} for scene: {description}")
             update_progress(f"Generating image {idx} of {total_scenes}...", 20 + int((idx) / total_scenes * 40))
+            
             try:
                 image = generate_image(description)
                 if image is None:
@@ -222,8 +228,8 @@ def generate_images(scene_descriptions, image_folder):
                 print(f"Saving image to: {image_path}")
                 image.save(image_path, format='JPEG')
                 
-                 # Save image path to database
-                db_image = ImageFile(file_path=image_path, user_id=current_user.id)
+                # Save image path and script to database
+                db_image = ImageFile(file_path=image_path, user_id=current_user.id, script=description)
                 db.session.add(db_image)
                 db.session.commit()
                 
@@ -231,10 +237,10 @@ def generate_images(scene_descriptions, image_folder):
             except Exception as e:
                 print(f"Error generating or saving image: {e}")
                 raise e
+            
     update_progress("All images generated.", 60)
     print(f"All images generated. Total: {len(images)}")
     return images
-
 
 def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):    
     update_progress("Translating script to Chinese and generating audio...", 60)
