@@ -7,7 +7,6 @@
 
 body {
   height: 100vh;
-  background-color: #000;
   background-color: #ffebee;
   background-size: cover;
   background-position: center;
@@ -34,6 +33,7 @@ header {
   width: 100%;
   padding: 0 2rem;
   background-color: #c0cccd;
+  z-index: 1000;
 }
 
 .navbar {
@@ -54,13 +54,14 @@ header {
 .navbar .links {
   display: flex;
   gap: 2rem;
+  align-items: center;
 }
 
 .navbar .toggle_btn {
   color: #000;
   font-size: 1.5rem;
   cursor: pointer;
-  display: none;
+  display: none; /* Hidden by default for larger screens */
 }
 
 .action_btn {
@@ -73,41 +74,37 @@ header {
   font-size: 0.8rem;
   font-weight: bold;
   cursor: pointer;
-  transition: scale 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .action_btn:hover {
-  scale: 1.05;
+  transform: scale(1.05);
   color: #000;
 }
 
 .action_btn:active {
-  scale: 0.95;
+  transform: scale(0.95);
 }
 
 .dropdown_menu {
-  display: none;
+  display: none; /* Hidden by default */
   position: absolute;
   right: 2rem;
   top: 60px;
-  height: 0;
-  width: 300px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(15px);
+  width: 200px;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 10px;
-  overflow: hidden;
-  transition: height 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 
 .dropdown_menu.open {
-  height: 240px;
+  display: block; /* Shown when the menu is open */
 }
 
 .dropdown_menu li {
   padding: 0.8rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
 .dropdown_menu .action_btn {
@@ -116,10 +113,11 @@ header {
   justify-content: center;
 }
 
-ul {
-  margin-bottom: 0 !important;
-}
-
-a {
-  color: black!important;
+@media (max-width: 768px) {
+  .navbar .links {
+    display: none; /* Hide links on small screens */
+  }
+  .navbar .toggle_btn {
+    display: block; /* Show the toggle button on small screens */
+  }
 }
