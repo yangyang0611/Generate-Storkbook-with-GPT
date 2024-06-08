@@ -1,82 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" 
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
-    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" 
-    crossorigin="anonymous" 
-    referrerpolicy="no-referrer" />
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" 
+        crossorigin="anonymous" 
+        referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="./static/css/header.css" />
     <link rel="stylesheet" href="./static/css/about.css" />
     <title>AI Storybook Generation Website - About</title>
-    <style>
-        
-    </style>
 </head>
+
 <body>
-    <header>
-        <div class="navbar">
-            <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
-            <ul class="links">
+<header>
+    <div class="navbar">
+        <div class="logo"><a href="/">AI Storybook Generation Website</a></div>
+        <ul class="links">
+            {% if current_user.is_authenticated %}
+                <li><a href="my_images">圖片</a></li>
+                <li><a href="my_video">影片</a></li>
+                <li><a href="about">關於</a></li>
+                <li><a href="{{ url_for('logout')}}" class="action_btn">登出</a></li>
+                <li><a href="generate" class="action_btn">創作</a></li>
+                <span class="user_name">{{ current_user.username }}</span>
+            {% else %}
                 <li><a href="register">註冊</a></li>
                 <li><a href="login">登入</a></li>
                 <li><a href="about">關於</a></li>
-                <li><a href="images">圖片</a></li>
-                <li><a href="/">登出</a></li>
-            </ul>
-            <a href="login" class="action_btn">創作</a>
-            <div class="toggle_btn">
-                <i class="fa-solid fa-bars"></i>
-            </div>
+                <li><a href="login" class="action_btn">創作</a></li>
+            {% endif %}
+        </ul>
+        <div class="toggle_btn">
+            <i class="fa-solid fa-bars"></i>
         </div>
+    </div>
 
-        <div class="dropdown_menu">
+    <div class="dropdown_menu">
+        {% if current_user.is_authenticated %}
+            <li><a href="my_images">圖片</a></li>
+            <li><a href="my_video">影片</a></li>
+            <li><a href="about">關於</a></li>
+            <li><a href="{{ url_for('logout')}}" class="action_btn">登出</a></li>
+            <li><a href="generate" class="action_btn">創作</a></li>
+            <span class="user_name">{{ current_user.username }}</span>
+        {% else %}
             <li><a href="register">註冊</a></li>
-            <li><a href="about">登入</a></li>
-            <li><a href="server">關於</a></li>
-            <li><a href="video">影片</a></li>
-            <li><a href="images">圖片</a></li>
-            <li><a href="/">登出</a></li>
+            <li><a href="login">登入</a></li>
+            <li><a href="about">關於</a></li>
             <li><a href="login" class="action_btn">創作</a></li>
-        </div>
-    </header>
+        {% endif %}
+    </div>
+</header>
 
-    <main>
-        <div class="container">
-            <div class="title">
-                <h1>About Us</h1>
-            </div>
-            <div class="content">
-                <div class="text-box">
-                    <div class="about">
-                        <h2>About</h2>
-                        <p>Welcome to our AI Storybook Generation Website, where imagination meets technology! We are a team of passionate storytellers and tech enthusiasts who have combined their skills to create a unique platform that harnesses the power of artificial intelligence to generate captivating storybooks for children.</p>
-                        <p>Our website is designed to be a one-stop-shop for parents, educators, and anyone who loves sharing stories with little ones. With just a few clicks, you can input your preferences, and our advanced AI algorithm will craft a personalized storybook tailored to your child's interests, age, and reading level.</p>
-                        <p>Join us on this exciting journey and experience the magic of AI-generated storytelling. Explore our website, customize your storybook, and embark on endless adventures with your little ones. Let's nurture their minds and ignite their creativity together!</p>
-                    </div>
-                </div>
-                <div class="image-box">
-                    <img src="../static/image/about-dog.jpg" alt="Dog with a book">
+<main>
+    <div class="container">
+        <div class="title">
+            <h1>About Us</h1>
+        </div>
+        <div class="content">
+            <div class="text-box">
+                <div class="about">
+                    <h2>About</h2>
+                    <p></p>
+                    <p>Welcome to our AI Storybook Generation Website, where imagination meets technology! We are a team of passionate storytellers and tech enthusiasts who have combined their skills to create a unique platform that harnesses the power of artificial intelligence to generate captivating storybooks for children.</p>
+                    <p>Our website is designed to be a one-stop-shop for parents, educators, and anyone who loves sharing stories with little ones. With just a few clicks, you can input your preferences, and our advanced AI algorithm will craft a personalized storybook tailored to your child's interests, age, and reading level.</p>
+                    <p>Join us on this exciting journey and experience the magic of AI-generated storytelling. Explore our website, customize your storybook, and embark on endless adventures with your little ones. Let's nurture their minds and ignite their creativity together!</p>
                 </div>
             </div>
+            <div class="image-box">
+                <img src="../static/image/about-dog.jpg" alt="Dog with a book">
+            </div>
         </div>
-    </main>
-    <script>
-        const toggleBtn = document.querySelector('.toggle_btn')
-        const toggleBtnIcon = document.querySelector('.toggle_btn i')
-        const dropDownMenu = document.querySelector('.dropdown_menu')
+    </div>
+</main>
 
-        toggleBtn.onclick = function() {
-            dropDownMenu.classList.toggle('open')
-            const isOpen = dropDownMenu.classList.contains('open')
-
-            toggleBtnIcon.classList = isOpen
-            ? 'fa-solid fa-xmark'
-            : 'fa-solid fa-bars'
-        }
-    </script>
+<script src="./static/js/navbar.js"></script>
 </body>
 </html>
