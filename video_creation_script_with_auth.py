@@ -37,14 +37,6 @@ login_manager.login_view = 'login'
 # Set OpenAI API key
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-progress = {'message': '', 'progress': 0}
-cancel_flag = False
-
-def update_progress(message, progress_value):
-    global progress
-    progress['message'] = message
-    progress['progress'] = progress_value
-
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 class User(UserMixin, db.Model):
@@ -75,6 +67,14 @@ class VideoFile(db.Model):
 with app.app_context():
     db.create_all()
 
+progress = {'message': '', 'progress': 0}
+cancel_flag = False
+
+def update_progress(message, progress_value):
+    global progress
+    progress['message'] = message
+    progress['progress'] = progress_value
+    
 def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
@@ -209,7 +209,15 @@ def generate_images(scene_descriptions, image_folder):
     user_image_folder = os.path.join(image_folder, str(current_user.id))
     if not os.path.exists(user_image_folder):
         os.makedirs(user_image_folder)
-        
+    
+    # Delete old images from database and folder
+    old_images = ImageFile.query.filter_by(user_id=current_user.id).all()
+    for old_image in old_images:
+        if os.path.exists(old_image.file_path):
+            os.remove(old_image.file_path)
+        db.session.delete(old_image)
+    db.session.commit()
+    
     images = []
     total_scenes = len(scene_descriptions)
     for idx, description in enumerate(scene_descriptions):
@@ -217,14 +225,14 @@ def generate_images(scene_descriptions, image_folder):
             raise Exception("Generation cancelled")
         
         if description.strip():
-            print(f"Generating image {idx} for scene: {description}")
-            update_progress(f"Generating image {idx} of {total_scenes}...", 20 + int((idx) / total_scenes * 40))
+            print(f"Generating image {idx+1} for scene: {description}")
+            update_progress(f"Generating image {idx+1} of {total_scenes}...", 20 + int((idx) / total_scenes * 40))
             
             try:
                 image = generate_image(description)
                 if image is None:
                     raise Exception("Generated image is None")
-                image_path = os.path.join(user_image_folder, f'image_{idx + 1}.jpg')
+                image_path = os.path.join(user_image_folder, f'image_{idx+1}.jpg')
                 print(f"Saving image to: {image_path}")
                 image.save(image_path, format='JPEG')
                 
@@ -244,6 +252,14 @@ def generate_images(scene_descriptions, image_folder):
 
 def translate_and_generate_audio(script, audio_folder, file_name="output.mp3"):    
     update_progress("Translating script to Chinese and generating audio...", 60)
+    
+    # Delete old audio files from database and folder
+    old_audios = AudioFile.query.filter_by(user_id=current_user.id).all()
+    for old_audio in old_audios:
+        if os.path.exists(old_audio.file_path):
+            os.remove(old_audio.file_path)
+        db.session.delete(old_audio)
+    db.session.commit()
     
     # Use deep-translator for translation
     translator = Translator()
@@ -319,6 +335,14 @@ def create_video(images, audio_segments, video_folder, output_file="story.mp4"):
     if not os.path.exists(user_video_folder):
         os.makedirs(user_video_folder)
 
+    # Delete old videos from database and folder
+    old_videos = VideoFile.query.filter_by(user_id=current_user.id).all()
+    for old_video in old_videos:
+        if os.path.exists(old_video.file_path):
+            os.remove(old_video.file_path)
+        db.session.delete(old_video)
+    db.session.commit()
+    
     update_progress("Creating video...", 90)
     print("Creating video...")
     
