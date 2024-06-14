@@ -19,7 +19,7 @@ li {
 
 a {
   text-decoration: none;
-  color: #000;
+  color: #000 !important;
   font-size: 1rem;
 }
 
@@ -111,6 +111,11 @@ header {
   width: 100%;
   display: flex;
   justify-content: center;
+}
+
+/* New CSS rule to remove margin-bottom */
+dl, ol, ul {
+  margin-bottom: 0 !important;
 }
 
 @media (max-width: 768px) {
