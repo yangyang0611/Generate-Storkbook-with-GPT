@@ -5,7 +5,8 @@ python-dotenv
 requests
 Pillow
 gtts
-googletrans
+googletrans===4.0.0-rc1
+Flask-Migrate
 moviepy
 pyttsx3
 openai
